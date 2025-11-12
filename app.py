@@ -6,8 +6,9 @@ from dar_logic import generate_dar_summary
 app = Flask(__name__)
 app.secret_key = "g3tech_secret_key"  # needed for flashing messages
 
-UPLOAD_FOLDER = 'uploads'
-OUTPUT_FOLDER = 'outputs'
+UPLOAD_FOLDER = '/tmp/uploads'
+OUTPUT_FOLDER = '/tmp/outputs'
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
@@ -46,6 +47,7 @@ def generate():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
 
 
