@@ -16,6 +16,18 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
+def extract_summary(pdf_path):
+    import pdfplumber
+    text = ""
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            extracted = page.extract_text() or ""
+            text += extracted + "\n"
+
+    return text
+
+
 def generate_dar_summary(input_pdf, output_folder):
     summary_text = extract_summary(input_pdf)  # your parsing logic here
     
@@ -3637,6 +3649,7 @@ if __name__ == "__main__":
         generate_pdf(parsed, date_range_header, OUT_FILE)
     else:
         generate_docx(parsed, date_range_header, OUT_FILE)
+
 
 
 
