@@ -1,1 +1,7 @@
+flask
+gunicorn
+pdfplumber
+reportlab
+python-docx
+
 
