@@ -1,3 +1,18 @@
+import re
+from datetime import datetime
+
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import Image, PageBreak
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.units import inch
+
+from docx import Document
+from docx.shared import Pt, Inches, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+
 import os
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
@@ -3669,6 +3684,7 @@ if __name__ == "__main__":
         generate_pdf(parsed, date_range_header, OUT_FILE)
     else:
         generate_docx(parsed, date_range_header, OUT_FILE)
+
 
 
 
