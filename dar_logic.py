@@ -18,14 +18,34 @@ from docx.oxml.ns import qn
 
 def extract_summary(pdf_path):
     import pdfplumber
+    import PyPDF2
+
     text = ""
 
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
+    try:
+        # Try pdfplumber first (works for text PDFs)
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                extracted = page.extract_text() or ""
+                text += extracted + "\n"
+
+        if text.strip():
+            return text
+
+    except Exception:
+        pass  # fallback to PyPDF2
+
+    # Fallback: PyPDF2 (super light, works on most PDFs)
+    try:
+        reader = PyPDF2.PdfReader(pdf_path)
+        for page in reader.pages:
             extracted = page.extract_text() or ""
             text += extracted + "\n"
+    except Exception as e:
+        return f"Could not extract text from PDF. Error: {e}"
 
     return text
+
 
 
 def generate_dar_summary(input_pdf, output_folder):
@@ -3649,6 +3669,7 @@ if __name__ == "__main__":
         generate_pdf(parsed, date_range_header, OUT_FILE)
     else:
         generate_docx(parsed, date_range_header, OUT_FILE)
+
 
 
 
