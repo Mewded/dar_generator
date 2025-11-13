@@ -2,32 +2,29 @@ import os
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 
-# ======================================
-# SAFE TEXT EXTRACTION FOR ANY PDF
-# ======================================
+# ================================
+# SAFE PDF TEXT EXTRACTION
+# ================================
 def extract_summary(pdf_path):
     text = ""
 
-    # --- Try pdfplumber first (best extraction) ---
+    # Try pdfplumber first (best extraction)
     try:
         import pdfplumber
-
         with pdfplumber.open(pdf_path) as pdf:
             for page in pdf.pages:
                 extracted = page.extract_text() or ""
                 text += extracted + "\n"
 
-        if text.strip():  # if pdfplumber succeeded
+        if text.strip():
             return text
 
     except Exception:
-        pass  # move to fallback
+        pass
 
-
-    # --- Fallback: PyPDF2 (very lightweight, safe for Render) ---
+    # Fallback: PyPDF2 (very lightweight)
     try:
         import PyPDF2
-
         reader = PyPDF2.PdfReader(pdf_path)
         for page in reader.pages:
             extracted = page.extract_text() or ""
@@ -39,12 +36,12 @@ def extract_summary(pdf_path):
     except Exception as e:
         return f"[ERROR] Could not extract text from PDF. {e}"
 
-    return text or "No readable text found in the PDF."
+    return text or "No readable text found in this PDF."
 
 
-# ======================================
-# GENERATE PDF OUTPUT FILE
-# ======================================
+# ================================
+# GENERATE OUTPUT PDF
+# ================================
 def generate_dar_summary(input_pdf, output_folder):
     summary_text = extract_summary(input_pdf)
 
@@ -53,18 +50,17 @@ def generate_dar_summary(input_pdf, output_folder):
     styles = getSampleStyleSheet()
     doc = SimpleDocTemplate(output_path)
 
-    # Replace newlines with <br/> so ReportLab respects formatting
-    formatted_text = summary_text.replace("\n", "<br/>")
+    formatted = summary_text.replace("\n", "<br/>")
 
     story = [
         Paragraph("Daily Activity Report Summary", styles["Title"]),
         Spacer(1, 12),
-        Paragraph(formatted_text, styles["Normal"])
+        Paragraph(formatted, styles["Normal"])
     ]
 
     doc.build(story)
-
     return output_path
+
 
 
 # -------- CONFIG (same-folder I/O) --------
@@ -3673,6 +3669,7 @@ if __name__ == "__main__":
         generate_pdf(parsed, date_range_header, OUT_FILE)
     else:
         generate_docx(parsed, date_range_header, OUT_FILE)
+
 
 
 
