@@ -1,7 +1,9 @@
 flask
 gunicorn
 pdfplumber
+PyPDF2
 reportlab
 python-docx
+
 
 
