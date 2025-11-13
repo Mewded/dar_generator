@@ -1,65 +1,69 @@
 import os
-import re
-from datetime import datetime
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
-import pdfplumber
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.units import inch
-
-from docx import Document
-from docx.shared import Pt, Inches, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
-
+# ======================================
+# SAFE TEXT EXTRACTION FOR ANY PDF
+# ======================================
 def extract_summary(pdf_path):
-    import pdfplumber
-    import PyPDF2
-
     text = ""
 
+    # --- Try pdfplumber first (best extraction) ---
     try:
-        # Try pdfplumber first (works for text PDFs)
+        import pdfplumber
+
         with pdfplumber.open(pdf_path) as pdf:
             for page in pdf.pages:
                 extracted = page.extract_text() or ""
                 text += extracted + "\n"
 
-        if text.strip():
+        if text.strip():  # if pdfplumber succeeded
             return text
 
     except Exception:
-        pass  # fallback to PyPDF2
+        pass  # move to fallback
 
-    # Fallback: PyPDF2 (super light, works on most PDFs)
+
+    # --- Fallback: PyPDF2 (very lightweight, safe for Render) ---
     try:
+        import PyPDF2
+
         reader = PyPDF2.PdfReader(pdf_path)
         for page in reader.pages:
             extracted = page.extract_text() or ""
             text += extracted + "\n"
+
+        if text.strip():
+            return text
+
     except Exception as e:
-        return f"Could not extract text from PDF. Error: {e}"
+        return f"[ERROR] Could not extract text from PDF. {e}"
 
-    return text
+    return text or "No readable text found in the PDF."
 
 
-
+# ======================================
+# GENERATE PDF OUTPUT FILE
+# ======================================
 def generate_dar_summary(input_pdf, output_folder):
-    summary_text = extract_summary(input_pdf)  # your parsing logic here
-    
-    # create output filename
+    summary_text = extract_summary(input_pdf)
+
     output_path = os.path.join(output_folder, "DAR_Report_Output.pdf")
-    
-    doc = SimpleDocTemplate(output_path)
+
     styles = getSampleStyleSheet()
-    story = [Paragraph("Daily Activity Report Summary", styles["Title"]), Spacer(1, 12)]
-    story.append(Paragraph(summary_text, styles["Normal"]))
+    doc = SimpleDocTemplate(output_path)
+
+    # Replace newlines with <br/> so ReportLab respects formatting
+    formatted_text = summary_text.replace("\n", "<br/>")
+
+    story = [
+        Paragraph("Daily Activity Report Summary", styles["Title"]),
+        Spacer(1, 12),
+        Paragraph(formatted_text, styles["Normal"])
+    ]
+
     doc.build(story)
-    
+
     return output_path
 
 
@@ -3669,6 +3673,7 @@ if __name__ == "__main__":
         generate_pdf(parsed, date_range_header, OUT_FILE)
     else:
         generate_docx(parsed, date_range_header, OUT_FILE)
+
 
 
 
